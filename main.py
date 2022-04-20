@@ -3,46 +3,50 @@ import pyxhook
 import os
 
 
-class Counter:
-    """Counter."""
+def main():
+    """Entry point."""
+
+    hook_man = pyxhook.HookManager()
+    hook_man.KeyDown = Handler().on_key_press
+    hook_man.start()
+
+
+class Handler:
+    """Handler."""
 
     def __init__(self):
-        self.__keys = {
-            'total': 0,
-            'symbols': 0,
-            'navi': 0,
-        }
-
+        self.__cnt = Counters()
         self.__clear_command = 'clear'
+        self.__print()
 
     def on_key_press(self, event):
-        """Update counter and output current value."""
-        if 'mouse' in str(event):
-            return
+        """Update counters and output current values."""
+        self.__update_counters(event)
+        self.__print()
 
-        self.__keys['total'] += 1
+    def __update_counters(self, event):
+        self.__cnt.total += 1
 
-        if is_symbol(event_get_key(event)):
-            self.__keys['symbols'] += 1
+        if is_symbol(event.Key):
+            self.__cnt.symbols += 1
 
-        if is_navi(event_get_key(event)):
-            self.__keys['navi'] += 1
+        if is_navi(event.Key):
+            self.__cnt.navi += 1
 
-        self.__clear_output()
-        self.__print_value()
+    def __print(self):
+        self.__clear_console()
 
-    def __clear_output(self):
+        sm_pc = self.__cnt.sm_pc()
+        nv_pc = self.__cnt.nv_pc()
+        oth_pc = round(100 - sm_pc - nv_pc, 2)
+
+        print(f"     total: {self.__cnt.total}")
+        print(f"   symbols: {self.__cnt.symbols} {sm_pc}%")
+        print(f"navigation: {self.__cnt.navi} {nv_pc}%")
+        print(f"     other: {self.__cnt.other()} {oth_pc}%")
+
+    def __clear_console(self):
         os.system(self.__clear_command)
-
-    def __print_value(self):
-        other = self.__keys['total']
-        other -= self.__keys['symbols']
-        other -= self.__keys['navi']
-
-        print(f"  total: {self.__keys['total']}")
-        print(f"symbols: {self.__keys['symbols']}")
-        print(f"   navi: {self.__keys['navi']}")
-        print(f"  other: {other}")
 
 
 def is_navi(key):
@@ -98,16 +102,32 @@ def is_symbol(key):
     return False
 
 
-def event_get_key(event):
-    return event.Key
+class Counters:
+    """Counters of different keys."""
 
+    def __init__(self):
+        self.total = 0
+        self.symbols = 0
+        self.navi = 0
 
-def main():
-    """Entry point."""
+    def other(self):
+        res = self.total
+        res -= self.symbols
+        res -= self.navi
 
-    hook_man = pyxhook.HookManager()
-    hook_man.KeyDown = Counter().on_key_press
-    hook_man.start()
+        return res
+
+    def sm_pc(self):
+        if self.total == 0:
+            return 0
+
+        return round(100 * self.symbols / self.total, 2)
+
+    def nv_pc(self):
+        if self.total == 0:
+            return 0
+
+        return round(100 * self.navi / self.total, 2)
 
 
 if __name__ == '__main__':
