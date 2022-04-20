@@ -7,9 +7,12 @@ class Counter:
     """Counter."""
 
     def __init__(self):
-        self.__total = 0
-        self.__symbols = 0
-        self.__navi = 0
+        self.__keys = {
+            'total': 0,
+            'symbols': 0,
+            'navi': 0,
+        }
+
         self.__clear_command = 'clear'
 
     def on_key_press(self, event):
@@ -17,13 +20,13 @@ class Counter:
         if 'mouse' in str(event):
             return
 
-        self.__total += 1
+        self.__keys['total'] += 1
 
         if is_symbol(event_get_key(event)):
-            self.__symbols += 1
+            self.__keys['symbols'] += 1
 
         if is_navi(event_get_key(event)):
-            self.__navi += 1
+            self.__keys['navi'] += 1
 
         self.__clear_output()
         self.__print_value()
@@ -32,11 +35,13 @@ class Counter:
         os.system(self.__clear_command)
 
     def __print_value(self):
-        other = self.__total - self.__symbols - self.__navi
+        other = self.__keys['total']
+        other -= self.__keys['symbols']
+        other -= self.__keys['navi']
 
-        print(f"  total: {self.__total}")
-        print(f"symbols: {self.__symbols}")
-        print(f"   navi: {self.__navi}")
+        print(f"  total: {self.__keys['total']}")
+        print(f"symbols: {self.__keys['symbols']}")
+        print(f"   navi: {self.__keys['navi']}")
         print(f"  other: {other}")
 
 
